@@ -1,12 +1,13 @@
 # Folding@home AMD ROCm Container
 
-FROM ubuntu:18.04
+FROM ubuntu:24.04
 LABEL description="Folding@home AMD ROCm Container"
 
-ARG ROCM_RELEASE=5.0
+ARG ROCM_RELEASE=6.3.2
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update \
+RUN useradd -Ms /bin/bash fah-client \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
       kmod \
       python3 \
@@ -14,6 +15,8 @@ RUN apt-get update \
       gnupg \
       ca-certificates \
       libnuma-dev \
+      polkitd-pkla \
+      policykit-1 \
     # get ROCm OpenCL runtime packages
     && curl -sL https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - \
     && printf "deb [arch=amd64] https://repo.radeon.com/rocm/apt/${ROCM_RELEASE}/ ubuntu main" \
@@ -22,13 +25,11 @@ RUN apt-get update \
       rocm-opencl-runtime \
       rocm-smi-lib \
       rocminfo \
-    # next line gets past the fahclient.postinst
-    && mkdir -p /etc/fahclient && touch /etc/fahclient/config.xml \
     # download and verify checksum
     && curl -fsSL \
-      https://download.foldingathome.org/releases/public/release/fahclient/debian-stable-64bit/v7.6/fahclient_7.6.21_amd64.deb \
+      https://download.foldingathome.org/releases/public/fah-client/debian-10-64bit/release/fah-client_8.4.9_amd64.deb \
       -o fah.deb \
-    && echo "2827f05f1c311ee6c7eca294e4ffb856c81957e8f5bfc3113a0ed27bb463b094 fah.deb" \
+    && echo "098f4abf7c172e543de4391e86eacd10655e67d53fd4b0ae05633e2b57f9e07c fah.deb" \
       | sha256sum -c --strict - \
     # install and cleanup
     && dpkg --install --force-depends fah.deb \
@@ -46,4 +47,4 @@ WORKDIR "/fah"
 VOLUME ["/fah"]
 EXPOSE 7396 36330
 
-ENTRYPOINT ["/usr/bin/FAHClient", "--chdir", "/fah"]
+ENTRYPOINT ["/usr/bin/fah-client"]
