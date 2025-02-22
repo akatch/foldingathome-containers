@@ -18,7 +18,7 @@ RUN useradd -Ms /bin/bash fah-client \
       polkitd-pkla \
       policykit-1 \
     # get ROCm OpenCL runtime packages
-    && curl -sL https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - \
+    && curl -sL https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/rocm.gpg \
     && printf "deb [arch=amd64] https://repo.radeon.com/rocm/apt/${ROCM_RELEASE}/ ubuntu main" \
         | tee /etc/apt/sources.list.d/rocm.list \
     && apt-get update && apt-get install -y --no-install-recommends \
